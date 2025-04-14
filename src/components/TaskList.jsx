@@ -1,70 +1,117 @@
-import React, { useState, useEffect } from "react";
+// src/components/TaskList.jsx
+import React, { useState } from "react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const TaskList = () => {
-  const [task, setTask] = useState("");
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem("focuspal_tasks");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState("");
 
-  // Update localStorage whenever tasks change
-  useEffect(() => {
-    localStorage.setItem("focuspal_tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = () => {
-    if (task.trim() !== "") {
-      setTasks([...tasks, { text: task, done: false }]);
-      setTask("");
-    }
+  const handleAddTask = () => {
+    if (newTask.trim() === "") return; // Prevent empty tasks
+    setTasks((prevTasks) => [...prevTasks, { text: newTask, completed: false }]);
+    setNewTask(""); // Clear input
   };
 
-  const toggleDone = (index) => {
-    const updated = [...tasks];
-    updated[index].done = !updated[index].done;
-    setTasks(updated);
+  const handleToggleComplete = (index) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index].completed = !updatedTasks[index].completed;
+    setTasks(updatedTasks);
   };
 
-  const deleteTask = (index) => {
-    const updated = tasks.filter((_, i) => i !== index);
-    setTasks(updated);
+  const handleDeleteTask = (index) => {
+    const updatedTasks = tasks.filter((_, i) => i !== index);
+    setTasks(updatedTasks);
   };
 
   return (
-    <div className="mt-8">
-      <h3 className="text-xl font-semibold mb-2">📝 Focus Tasks</h3>
-      <div className="flex gap-2 mb-4">
-        <input
+    <div style={styles.taskListContainer}>
+      <h2 style={styles.heading}>Your Tasks</h2>
+      <div style={styles.inputWrapper}>
+        <Input
           type="text"
-          placeholder="Add new task"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          className="flex-1 p-2 border rounded"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          placeholder="Add a new task"
         />
-        <button onClick={addTask} className="px-4 py-2 bg-blue-500 text-white rounded">
-          Add
-        </button>
+        <Button onClick={handleAddTask} style={styles.addButton}>
+          Add Task
+        </Button>
       </div>
 
-      <ul className="space-y-2">
-        {tasks.map((t, index) => (
-          <li
-            key={index}
-            className={`flex justify-between items-center p-2 border rounded ${
-              t.done ? "bg-green-100 line-through" : ""
-            }`}
-          >
-            <span onClick={() => toggleDone(index)} className="cursor-pointer">
-              {t.text}
+      <ul style={styles.list}>
+        {tasks.map((task, index) => (
+          <li key={index} style={styles.taskItem}>
+            <input
+              type="checkbox"
+              checked={task.completed}
+              onChange={() => handleToggleComplete(index)}
+              style={styles.checkbox}
+            />
+            <span
+              style={{
+                ...styles.taskText,
+                textDecoration: task.completed ? "line-through" : "none",
+              }}
+            >
+              {task.text}
             </span>
-            <button onClick={() => deleteTask(index)} className="text-red-500">
-              ✕
-            </button>
+            <Button
+              onClick={() => handleDeleteTask(index)}
+              style={styles.deleteButton}
+            >
+              🗑
+            </Button>
           </li>
         ))}
       </ul>
     </div>
   );
+};
+
+const styles = {
+  taskListContainer: {
+    marginTop: "1rem",
+  },
+  heading: {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    marginBottom: "1rem",
+    textAlign: "center",
+  },
+  inputWrapper: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "1rem",
+  },
+  addButton: {
+    marginLeft: "0.5rem",
+  },
+  list: {
+    listStyleType: "none",
+    paddingLeft: "0",
+  },
+  taskItem: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    backgroundColor: "#f7f7f7",
+    borderRadius: "8px",
+  },
+  checkbox: {
+    marginRight: "0.5rem",
+  },
+  taskText: {
+    flexGrow: 1,
+  },
+  deleteButton: {
+    padding: "0.25rem 0.5rem",
+    backgroundColor: "red",
+    color: "white",
+    fontSize: "0.75rem",
+  },
 };
 
 export default TaskList;

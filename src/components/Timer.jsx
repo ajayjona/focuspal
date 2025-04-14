@@ -1,72 +1,67 @@
-// Timer.jsx
+// src/components/Timer.jsx
 import React, { useState, useEffect } from "react";
+import { Button } from "../components/ui/button";
 
 const Timer = () => {
-  const [isRunning, setIsRunning] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 mins
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
+  const [isRunning, setIsRunning] = useState(false);
 
-  // Format time
-  const formatTime = (secs) => {
-    const mins = Math.floor(secs / 60);
-    const seconds = secs % 60;
-    return `${String(mins).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  };
-
-  // Timer logic
   useEffect(() => {
-    if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-      }
-      if (timeLeft === 0) {
-        playSound();
-        if (Notification.permission === "granted") {
-          new Notification(isFocusMode ? "Break time! 🧘" : "Focus time! 💪");
-        }
-      
-        setIsFocusMode((prev) => !prev);
-        setTimeLeft(isFocusMode ? 5 * 60 : 25 * 60);
-        setIsRunning(false);
-      }
-      
-    let interval;
+    let timer;
     if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     } else if (timeLeft === 0) {
-      alert(isFocusMode ? "Focus session done! Time for a break 😌" : "Break over! Back to work 💪");
-      setIsFocusMode((prev) => !prev);
-      setTimeLeft(isFocusMode ? 5 * 60 : 25 * 60);
+      clearInterval(timer);
       setIsRunning(false);
+      // Switch between focus and break modes
+      setIsFocusMode(!isFocusMode);
+      setTimeLeft(isFocusMode ? 5 * 60 : 25 * 60); // 5 minutes for break, 25 minutes for focus
     }
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [isRunning, timeLeft, isFocusMode]);
 
-  // Handlers
-  const handleStartPause = () => setIsRunning((prev) => !prev);
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeLeft(isFocusMode ? 25 * 60 : 5 * 60);
+  const handleStartStop = () => {
+    setIsRunning((prev) => !prev);
   };
-  const playSound = () => {
-    const audio = new Audio("/ding.mp3");
-    audio.play();
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secondsLeft = seconds % 60;
+    return `${minutes < 10 ? `0${minutes}` : minutes}:${secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}`;
   };
-  
 
   return (
-    <div className="text-center space-y-4">
-      <h2 className="text-2xl font-semibold">{isFocusMode ? "Focus Time" : "Break Time"}</h2>
-      <div className="text-5xl font-mono">{formatTime(timeLeft)}</div>
-      <div className="space-x-4">
-        <button onClick={handleStartPause} className="px-4 py-2 bg-green-500 text-white rounded">
-          {isRunning ? "Pause" : "Start"}
-        </button>
-        <button onClick={handleReset} className="px-4 py-2 bg-gray-400 text-white rounded">
-          Reset
-        </button>
-      </div>
+    <div style={styles.timerContainer}>
+      <h2 style={styles.mode}>{isFocusMode ? "Focus Mode" : "Break Time"}</h2>
+      <p style={styles.time}>{formatTime(timeLeft)}</p>
+      <Button onClick={handleStartStop} style={styles.button}>
+        {isRunning ? "Pause" : "Start"}
+      </Button>
     </div>
   );
+};
+
+const styles = {
+  timerContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "1rem",
+  },
+  mode: {
+    fontSize: "1.5rem",
+    fontWeight: "600",
+    marginBottom: "1rem",
+  },
+  time: {
+    fontSize: "2.5rem",
+    fontWeight: "bold",
+    marginBottom: "1rem",
+  },
+  button: {
+    width: "150px",
+  },
 };
 
 export default Timer;
