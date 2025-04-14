@@ -15,6 +15,20 @@ const Timer = () => {
 
   // Timer logic
   useEffect(() => {
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+      if (timeLeft === 0) {
+        playSound();
+        if (Notification.permission === "granted") {
+          new Notification(isFocusMode ? "Break time! 🧘" : "Focus time! 💪");
+        }
+      
+        setIsFocusMode((prev) => !prev);
+        setTimeLeft(isFocusMode ? 5 * 60 : 25 * 60);
+        setIsRunning(false);
+      }
+      
     let interval;
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
@@ -33,6 +47,11 @@ const Timer = () => {
     setIsRunning(false);
     setTimeLeft(isFocusMode ? 25 * 60 : 5 * 60);
   };
+  const playSound = () => {
+    const audio = new Audio("/ding.mp3");
+    audio.play();
+  };
+  
 
   return (
     <div className="text-center space-y-4">
